@@ -34,12 +34,16 @@ def reply_to_tweets():
         store_last_seen_id(last_seen_id, 'last_seen_id.txt')
         salu_flag = 0
 
-        if 'follow me' in mention.full_text.lower() and salu_flag == 0:
-            api.create_friendship(mention.user.screen_name)
+        if 'unfollow me' in mention.full_text.lower() and salu_flag == 0:
+            print('Found unfollow me request, unfollowing user...', flush=True)
+            api.destroy_friendship(mention.user.screen_name)
+            api.update_status('@' + mention.user.screen_name + ' As you say \U0001F97A', mention.id)
             salu_flag = 1
 
-        if 'unfollow me' in mention.full_text.lower() and salu_flag == 0:
-            api.destroy_friendship(mention.user.screen_name)
+        if 'follow me' in mention.full_text.lower() and salu_flag == 0:
+            print('Found follow me request, following user...', flush=True)
+            api.create_friendship(mention.user.screen_name)
+            api.update_status('@' + mention.user.screen_name + ' Done!', mention.id)
             salu_flag = 1
 
         sup_salutations = ['sup', 'whats up', "what's up", 'wassup']
