@@ -32,19 +32,48 @@ def reply_to_tweets():
         print(str(mention.id) + ' - ' + mention.full_text, flush=True)
         last_seen_id = mention.id
         store_last_seen_id(last_seen_id, 'last_seen_id.txt')
+        salu_flag = 0
+
+        if 'follow me' in mention.full_text.lower() and salu_flag == 0:
+            api.create_friendship(mention.user.screen_name)
+            salu_flag = 1
+
+        if 'unfollow me' in mention.full_text.lower() and salu_flag == 0:
+            api.destroy_friendship(mention.user.screen_name)
+            salu_flag = 1
+
         sup_salutations = ['sup', 'whats up', "what's up", 'wassup']
-        sup_replies = [' Hey Yourself! Nothing much, I just got myself some bird food.',
-                       ' Ceiling! Please excuse me for my poor sense of humour.', ' Hey There! Nothing much, same old.',
-                       ' Same old, same old.', ' Hi! Tough day at work today :(',
+        sup_replies = [' Hey Yourself! Nothing much, I just got myself some bird food \U0001f600',
+                       ' Ceiling! Please excuse me for my poor sense of humour.',
+                       ' Hey There! Nothing much, same old.',
+                       ' Same old, same old.',
+                       ' Hi! Tough day at work today :(',
                        ' Nothing, just tired from a long flight.']
-        for word in sup_salutations:
-            if word in mention.full_text.lower():
-                print('found some salutations', flush=True)
-                print('responding back...', flush=True)
-                reply_index = random.randint(0, 5)
-                api.update_status('@' + mention.user.screen_name +
-                                  sup_replies[reply_index], mention.id)
-                break
+        if salu_flag == 0:
+            for word in sup_salutations:
+                if word in mention.full_text.lower():
+                    print('found some salutations', flush=True)
+                    print('responding back...', flush=True)
+                    reply_index = random.randint(0, len(sup_replies)-1)
+                    api.update_status('@' + mention.user.screen_name + sup_replies[reply_index], mention.id)
+                    salu_flag = 1
+                    break
+
+        hi_salutations = ['hi', 'hey', 'hello', 'hola']
+        hi_replies = [' Hey Yourself!',
+                       ' Hey you :)',
+                       ' Hey ya!!!',
+                       ' Hi there \U0001f600',
+                       ' Hola amigo!!']
+        if salu_flag == 0:
+            for word in hi_salutations:
+                if word in mention.full_text.lower():
+                    print('found some salutations', flush=True)
+                    print('responding back...', flush=True)
+                    reply_index = random.randint(0, len(hi_replies)-1)
+                    api.update_status('@' + mention.user.screen_name + hi_replies[reply_index], mention.id)
+                    salu_flag = 1
+                    break
 
 
 while True:
