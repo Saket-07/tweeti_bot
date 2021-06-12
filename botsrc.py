@@ -65,6 +65,14 @@ def reply_to_tweets():
             api.update_status('@' + mention.user.screen_name + ' Done!', mention.id)
             salu_flag = 1
 
+        if 'joke' in mention.full_text.lower() and salu_flag == 0:
+            jokes_url = "https://v2.jokeapi.dev/joke/Miscellaneous,Dark,Pun,Christmas?blacklistFlags=religious,political,racist,sexist,explicit&format=txt"
+            response = requests.get(jokes_url)
+
+            api.update_status('@' + mention.user.screen_name + " " + response.text, mention.id)
+            print("joke request found, replying....", flush=True)
+            salu_flag = 1
+
         if 'weather' in mention.full_text.lower() and salu_flag == 0:
             print('found weather request, replying...', flush=True)
             #extracting city name
