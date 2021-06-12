@@ -2,10 +2,13 @@ from decouple import config
 import tweepy
 import time
 import random
+import requests
 
 auth = tweepy.OAuthHandler(config("CONSUMER_KEY"), config("CONSUMER_SECRET"))
 auth.set_access_token(config("ACCESS_KEY"), config("ACCESS_SECRET"))
 api = tweepy.API(auth)
+
+weather_api_key = config("WEATHER_API_KEY")
 
 
 def retrieve_last_seen_id(file_name):
@@ -28,6 +31,22 @@ def reply_to_tweets():
     # all full tweets (with full_text). Without it, long tweets
     # would be cut off.
     mentions = api.mentions_timeline(last_seen_id, tweet_mode='extended')
+
+    sup_salutations = ['sup', 'whats up', "what's up", 'wassup']
+    sup_replies = [' Hey Yourself! Nothing much, I just got myself some bird food \U0001f600',
+                   ' Ceiling! Please excuse me for my poor sense of humour.',
+                   ' Hey There! Nothing much, same old.',
+                   ' Same old, same old.',
+                   ' Hi! Tough day at work today :(',
+                   ' Nothing, just tired from a long flight.']
+
+    hi_salutations = ['hi', 'hello', 'hola']
+    hi_replies = [' Hey Yourself!',
+                  ' Hey you :)',
+                  ' Hey ya!!!',
+                  ' Hi there \U0001f600',
+                  ' Hola amigo!!']
+
     for mention in reversed(mentions):
         print(str(mention.id) + ' - ' + mention.full_text, flush=True)
         last_seen_id = mention.id
@@ -46,13 +65,33 @@ def reply_to_tweets():
             api.update_status('@' + mention.user.screen_name + ' Done!', mention.id)
             salu_flag = 1
 
-        sup_salutations = ['sup', 'whats up', "what's up", 'wassup']
-        sup_replies = [' Hey Yourself! Nothing much, I just got myself some bird food \U0001f600',
-                       ' Ceiling! Please excuse me for my poor sense of humour.',
-                       ' Hey There! Nothing much, same old.',
-                       ' Same old, same old.',
-                       ' Hi! Tough day at work today :(',
-                       ' Nothing, just tired from a long flight.']
+        if 'weather' in mention.full_text.lower() and salu_flag == 0:
+            print('found weather request, replying...', flush=True)
+            #extracting city name
+            words = mention.full_text.split()
+            itemp = 1
+            temp_city_name = ''
+            while words[itemp].lower() != 'weather':
+                temp_city_name = temp_city_name + words[itemp] + ' '
+                itemp+=1
+            city_name = temp_city_name.strip()
+            #city_name = temp_city_name[:len(temp_city_name)-1]
+            weather_url = 'https://api.openweathermap.org/data/2.5/weather?q=' + city_name.lower().replace(' ', '%20') + '&appid=' + weather_api_key
+            weather_response = requests.get(weather_url)
+            wea_json = weather_response.json()
+
+            if wea_json["cod"] != "404":
+                current_temperature = round(wea_json["main"]["temp"] - 273.15, 1)
+                current_humidity = wea_json["main"]["humidity"]
+                weather_description = wea_json["weather"][0]["description"]
+                api.update_status('@' + mention.user.screen_name + ' Weather forecast in ' + city_name + ':'
+                                  '\n' + str(weather_description) +
+                                  '\nTemperature = ' + str(current_temperature) + '\u00b0 C' +
+                                  '\nHumidity = ' + str(current_humidity) + '%', mention.id)
+            else:
+                api.update_status('@' + mention.user.screen_name + ' City not found \U0001F615', mention.id)
+            salu_flag = 1
+
         if salu_flag == 0:
             for word in sup_salutations:
                 if word in mention.full_text.lower():
@@ -63,12 +102,6 @@ def reply_to_tweets():
                     salu_flag = 1
                     break
 
-        hi_salutations = ['hi', 'hey', 'hello', 'hola']
-        hi_replies = [' Hey Yourself!',
-                       ' Hey you :)',
-                       ' Hey ya!!!',
-                       ' Hi there \U0001f600',
-                       ' Hola amigo!!']
         if salu_flag == 0:
             for word in hi_salutations:
                 if word in mention.full_text.lower():
