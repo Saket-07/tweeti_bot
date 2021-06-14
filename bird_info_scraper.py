@@ -7,6 +7,8 @@ import random
 import requests
 import time as tim
 import nltk.data
+import shutil
+
 
 auth = tweepy.OAuthHandler(config("CONSUMER_KEY"), config("CONSUMER_SECRET"))
 auth.set_access_token(config("ACCESS_KEY"), config("ACCESS_SECRET"))
@@ -24,7 +26,9 @@ def post_bird_tweet():
         if position == bird_index:
             bird = line
     bird_file.close()
+
     bird = bird.replace(' ', '_').strip()
+
     bird_url = "https://en.wikipedia.org/wiki/" + bird
     print(bird_url)
     response = requests.get(
@@ -34,17 +38,20 @@ def post_bird_tweet():
     data = soup.find_all("p")
 
     overview = ''
-
     for sentence in data:
         sentence = sentence.getText()
         if 'The ' in sentence:
             overview = tokenizer.tokenize(sentence)
             break
+
     overview = overview[0]
 
     for i in range(len(overview)):
+
+        if i == len(overview):
+            break
         if overview[i] == '[':
-            overview = overview[:i]+overview[i+3:]
+            overview = overview[:i] + overview[i + 3:]
 
     if len(overview) > 280:
         post_bird_tweet()
@@ -57,7 +64,12 @@ def post_bird_tweet():
     api.update_with_media(bird_image, overview)
 
 
-bird_posting_time = datetime.now()
+    dir = "bird_photo"
+
+    shutil.rmtree(dir)
+
+
+bird_posting_time = datetime.now()+timedelta(seconds=20)
 
 while True:
     while datetime.now() < bird_posting_time:
