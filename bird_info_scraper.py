@@ -27,9 +27,11 @@ def post_bird_tweet():
             bird = line
     bird_file.close()
 
-    bird = bird.replace(' ', '_').strip()
+    bird = bird.strip()
+    print(bird)
+    bird_with_ = bird.replace(' ', '_')
 
-    bird_url = "https://en.wikipedia.org/wiki/" + bird
+    bird_url = "https://en.wikipedia.org/wiki/" + bird_with_
     print(bird_url)
     response = requests.get(
         url=bird_url,
@@ -57,11 +59,16 @@ def post_bird_tweet():
         post_bird_tweet()
         return
 
-    downloader.download(bird, limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
+    downloader.download(bird_with_, limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
                         timeout=60, verbose=True)
 
-    bird_image = 'bird_photo\\' + bird + '\\image_1.jpg'
-    api.update_with_media(bird_image, overview)
+    bird_image = 'bird_photo\\' + bird_with_ + '\\image_1.jpg'
+    try:
+        api.update_with_media(bird_image, overview)
+    except tweepy.error.TweepError:
+        print('Image not downloaded')
+        post_bird_tweet()
+        return
 
 
     dir = "bird_photo"
@@ -69,7 +76,7 @@ def post_bird_tweet():
     shutil.rmtree(dir)
 
 
-bird_posting_time = datetime.now()+timedelta(seconds=20)
+bird_posting_time = datetime.now()+timedelta(seconds=2)
 
 while True:
     while datetime.now() < bird_posting_time:
