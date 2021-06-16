@@ -12,6 +12,9 @@ api = tweepy.API(auth)
 weather_api_key = config("WEATHER_API_KEY")
 
 
+
+
+
 def retrieve_last_seen_id(file_name):
     f_read = open(file_name, 'r')
     last_seen_id = int(f_read.read().strip())
@@ -92,24 +95,54 @@ def reply_to_tweets():
             print("found movie request, suggesting movies...")
             api.update_status('@' + mention.user.screen_name + " " +
                               "Here are some movie recommendations for ya:" +
-                              "\n 1. " + movie_list[movie_indices[0]] +
-                                "\n 2. " + movie_list[movie_indices[1]] +
-                                "\n 3. " + movie_list[movie_indices[2]] +
-                                "\nEnjoy :)", mention.id)
+                              "\n1. " + movie_list[movie_indices[0]] +
+                              "\n2. " + movie_list[movie_indices[1]] +
+                              "\n3. " + movie_list[movie_indices[2]] +
+                              "\nEnjoy :)", mention.id)
+            salu_flag = 1
+
+        if 'book' in mention.full_text.lower() and salu_flag == 0:
+            book_url = "https://www.google.com/search?q=book+recommendations&rlz=1C1CHBF_enIN863IN863&oq=book+recomme&aqs=chrome.0.0i433j69i57j0l8.3592j0j7&sourceid=chrome&ie=UTF-8"
+            print(book_url)
+            response = requests.get(
+                url=book_url,
+            )
+            soup = BeautifulSoup(response.content, 'html.parser')
+            data = soup.find_all("div", class_="BNeawe s3v9rd AP7Wnd")
+
+            book_list = list()
+            for a in data:
+
+                try:
+                    if '...' not in a.getText():
+                        book_list.append(a.getText())
+                except KeyError:
+                    pass
+
+            book_indices = random.sample(range(0, 15), 3)
+
+            print("found book request, suggesting books...")
+            api.update_status('@' + mention.user.screen_name + " " +
+                              "Here are some nice books to read:" +
+                              "\n1. " + book_list[book_indices[0]] +
+                              "\n2. " + book_list[book_indices[1]] +
+                              "\n3. " + book_list[book_indices[2]] +
+                              "\nCheers :)", mention.id)
             salu_flag = 1
 
         if 'weather' in mention.full_text.lower() and salu_flag == 0:
             print('found weather request, replying...', flush=True)
-            #extracting city name
+            # extracting city name
             words = mention.full_text.split()
             itemp = 1
             temp_city_name = ''
             while words[itemp].lower() != 'weather':
                 temp_city_name = temp_city_name + words[itemp] + ' '
-                itemp+=1
+                itemp += 1
             city_name = temp_city_name.strip()
-            #city_name = temp_city_name[:len(temp_city_name)-1]
-            weather_url = 'https://api.openweathermap.org/data/2.5/weather?q=' + city_name.lower().replace(' ', '%20') + '&appid=' + weather_api_key
+            # city_name = temp_city_name[:len(temp_city_name)-1]
+            weather_url = 'https://api.openweathermap.org/data/2.5/weather?q=' + city_name.lower().replace(' ',
+                                                                                                           '%20') + '&appid=' + weather_api_key
             weather_response = requests.get(weather_url)
             wea_json = weather_response.json()
 
@@ -118,7 +151,8 @@ def reply_to_tweets():
                 current_humidity = wea_json["main"]["humidity"]
                 weather_description = wea_json["weather"][0]["description"]
                 api.update_status('@' + mention.user.screen_name + ' Weather forecast in ' + city_name + ':'
-                                  '\n' + str(weather_description) +
+                                                                                                         '\n' + str(
+                    weather_description) +
                                   '\nTemperature = ' + str(current_temperature) + '\u00b0 C' +
                                   '\nHumidity = ' + str(current_humidity) + '%', mention.id)
             else:
@@ -130,7 +164,7 @@ def reply_to_tweets():
                 if word in mention.full_text.lower():
                     print('found some salutations', flush=True)
                     print('responding back...', flush=True)
-                    reply_index = random.randint(0, len(sup_replies)-1)
+                    reply_index = random.randint(0, len(sup_replies) - 1)
                     api.update_status('@' + mention.user.screen_name + sup_replies[reply_index], mention.id)
                     salu_flag = 1
                     break
@@ -140,7 +174,7 @@ def reply_to_tweets():
                 if word in mention.full_text.lower():
                     print('found some salutations', flush=True)
                     print('responding back...', flush=True)
-                    reply_index = random.randint(0, len(hi_replies)-1)
+                    reply_index = random.randint(0, len(hi_replies) - 1)
                     api.update_status('@' + mention.user.screen_name + hi_replies[reply_index], mention.id)
                     salu_flag = 1
                     break
