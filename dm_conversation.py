@@ -48,15 +48,14 @@ def reply_dms():
                   'Hola amigo!!']
 
     for dir_message in dir_messages:
-        if dir_message.id == last_replied_dmid:
+        if dir_message.id == str(last_replied_dmid):
             break
 
         print(str(dir_message.id) + ' - ' + str(dir_message.message_create['sender_id']) + ' - ' +
               dir_message.message_create["message_data"]["text"], flush=True)
 
-        if dir_message.message_create['sender_id'] != '1357654871948865536' and dir_message.id != last_replied_dmid:
+        if dir_message.message_create['sender_id'].strip() != '1357654871948865536':
             salu_flag = 0
-            print(type(dir_message.message_create['sender_id']))
             if 'unfollow me' in dir_message.message_create["message_data"]["text"].lower() and salu_flag == 0:
                 print('Found unfollow me request, unfollowing user...', flush=True)
                 api.destroy_friendship(dir_message.message_create['sender_id'])
@@ -72,7 +71,6 @@ def reply_dms():
             if 'joke' in dir_message.message_create["message_data"]["text"].lower() and salu_flag == 0:
                 jokes_url = "https://v2.jokeapi.dev/joke/Miscellaneous,Dark,Pun,Christmas?blacklistFlags=religious,political,racist,sexist,explicit&format=txt"
                 response = requests.get(jokes_url)
-
                 api.send_direct_message(dir_message.message_create['sender_id'], response.text)
                 print("joke request found, replying....", flush=True)
                 salu_flag = 1
@@ -97,7 +95,8 @@ def reply_dms():
                     current_temperature = round(wea_json["main"]["temp"] - 273.15, 1)
                     current_humidity = wea_json["main"]["humidity"]
                     weather_description = wea_json["weather"][0]["description"]
-                    api.send_direct_message(dir_message.message_create['sender_id'], 'Weather forecast in ' + city_name + ':'
+                    api.send_direct_message(dir_message.message_create['sender_id'],
+                                            'Weather forecast in ' + city_name + ':'
                                             '\n' + str(weather_description) +
                                             '\nTemperature = ' + str(current_temperature) + '\u00b0 C' +
                                             '\nHumidity = ' + str(current_humidity) + '%')
@@ -129,4 +128,4 @@ def reply_dms():
 
 while True:
     reply_dms()
-    time.sleep(5)
+    time.sleep(15)
