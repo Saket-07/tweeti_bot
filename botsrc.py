@@ -3,6 +3,7 @@ import tweepy
 import time
 import random
 import requests
+from bs4 import BeautifulSoup
 
 auth = tweepy.OAuthHandler(config("CONSUMER_KEY"), config("CONSUMER_SECRET"))
 auth.set_access_token(config("ACCESS_KEY"), config("ACCESS_SECRET"))
@@ -71,6 +72,30 @@ def reply_to_tweets():
 
             api.update_status('@' + mention.user.screen_name + " " + response.text, mention.id)
             print("joke request found, replying....", flush=True)
+            salu_flag = 1
+
+        if 'movie' in mention.full_text.lower() and salu_flag == 0:
+            movie_url = "https://www.imdb.com/list/ls063596142/"
+            print(movie_url)
+            response = requests.get(
+                url=movie_url,
+            )
+            soup = BeautifulSoup(response.content, 'html.parser')
+            data = soup.find_all("img")
+            movie_list = list()
+            for image in data:
+                if image['alt'].strip() != 'loading' and image['alt'].strip() != 'list image':
+                    movie_list.append(image['alt'].strip())
+
+            movie_indices = random.sample(range(0, 99), 3)
+
+            print("found movie request, suggesting movies...")
+            api.update_status('@' + mention.user.screen_name + " " +
+                              "Here are some movie recommendations for ya:" +
+                              "\n 1. " + movie_list[movie_indices[0]] +
+                                "\n 2. " + movie_list[movie_indices[1]] +
+                                "\n 3. " + movie_list[movie_indices[2]] +
+                                "\nEnjoy :)", mention.id)
             salu_flag = 1
 
         if 'weather' in mention.full_text.lower() and salu_flag == 0:
