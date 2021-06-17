@@ -3,6 +3,10 @@ import tweepy
 import time
 import random
 import requests
+import nltk.data
+import shutil
+import wikipedia
+from bing_image_downloader import downloader
 from bs4 import BeautifulSoup
 
 auth = tweepy.OAuthHandler(config("CONSUMER_KEY"), config("CONSUMER_SECRET"))
@@ -11,8 +15,22 @@ api = tweepy.API(auth)
 
 weather_api_key = config("WEATHER_API_KEY")
 
+tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
+sup_salutations = ['sup', 'whats up', "what's up", 'wassup']
+sup_replies = [' Hey Yourself! Nothing much, I just got myself some bird food \U0001f600',
+               ' Ceiling! Please excuse me for my poor sense of humour.',
+               ' Hey There! Nothing much, same old.',
+               ' Same old, same old.',
+               ' Hi! Tough day at work today :(',
+               ' Nothing, just tired from a long flight.']
 
+hi_salutations = ['hi', 'hello', 'hola']
+hi_replies = [' Hey Yourself!',
+              ' Hey you :)',
+              ' Hey ya!!!',
+              ' Hi there \U0001f600',
+              ' Hola amigo!!']
 
 
 def retrieve_last_seen_id(file_name):
@@ -29,27 +47,79 @@ def store_last_seen_id(last_seen_id, file_name):
     return
 
 
+def check_if_bird(url):
+    response = requests.get(
+        url=url,
+    )
+    soup = BeautifulSoup(response.content, 'html.parser')
+    data = soup.find_all("a")
+    for a in data:
+        try:
+            if "Aves" in a.getText():
+                return True
+        except KeyError:
+            pass
+    return False
+
+
+def tweet_bird_info(bird_name, mention):
+    overview = ''
+    url = ''
+    try:
+        overview = wikipedia.summary(bird_name, auto_suggest=False, sentences=1)
+        url = wikipedia.page(bird_name, auto_suggest=False).url
+    except wikipedia.DisambiguationError as e:
+        s = e.options
+        bird_file = open("birds_list.txt", encoding="utf-8")
+        readfile = bird_file.read()
+        flag = 1
+        for name in s:
+            if name in readfile:
+                bird_name = name
+                flag = 0
+                break
+        if flag:
+            api.update_status('@' + mention.user.screen_name + " Sorry, I haven't heard of this bird \U0001F615",
+                              mention.id)
+            return
+        url = wikipedia.page(bird_name, auto_suggest=False).url
+        overview = wikipedia.summary(bird_name, auto_suggest=False)
+    except wikipedia.PageError as e:
+        api.update_status('@' + mention.user.screen_name + " Sorry, I can't find the bird you searched for.",
+                          mention.id)
+        return
+
+    if not check_if_bird(url):
+        api.update_status('@' + mention.user.screen_name + " Sorry, I haven't heard of this bird \U0001F615",
+                          mention.id)
+        return
+
+    if len(overview) > 250:
+        api.update_status(
+            '@' + mention.user.screen_name + " " + "The info about the bird is too large, please refer this url: " + url,
+            mention.id)
+        return
+
+    downloader.download(bird_name.strip(), limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
+                        timeout=60, verbose=True)
+
+    bird_image = 'bird_photo\\' + bird_name.strip() + '\\image_1.jpg'
+    try:
+        api.update_with_media(bird_image, '@' + mention.user.screen_name + ' ' + overview)
+    except tweepy.error.TweepError:
+        print('Image not downloaded')
+        api.update_status('@' + mention.user.screen_name + " " + overview, mention.id)
+        return
+    shutil.rmtree('bird_photo')
+    return
+
+
 def reply_to_tweets():
     last_seen_id = retrieve_last_seen_id('last_seen_id.txt')
     # NOTE: We need to use tweet_mode='extended' below to show
     # all full tweets (with full_text). Without it, long tweets
     # would be cut off.
     mentions = api.mentions_timeline(last_seen_id, tweet_mode='extended')
-
-    sup_salutations = ['sup', 'whats up', "what's up", 'wassup']
-    sup_replies = [' Hey Yourself! Nothing much, I just got myself some bird food \U0001f600',
-                   ' Ceiling! Please excuse me for my poor sense of humour.',
-                   ' Hey There! Nothing much, same old.',
-                   ' Same old, same old.',
-                   ' Hi! Tough day at work today :(',
-                   ' Nothing, just tired from a long flight.']
-
-    hi_salutations = ['hi', 'hello', 'hola']
-    hi_replies = [' Hey Yourself!',
-                  ' Hey you :)',
-                  ' Hey ya!!!',
-                  ' Hi there \U0001f600',
-                  ' Hola amigo!!']
 
     for mention in reversed(mentions):
         print(str(mention.id) + ' - ' + mention.full_text, flush=True)
@@ -75,6 +145,24 @@ def reply_to_tweets():
 
             api.update_status('@' + mention.user.screen_name + " " + response.text, mention.id)
             print("joke request found, replying....", flush=True)
+            salu_flag = 1
+
+        if 'bird info' in mention.full_text.lower() and salu_flag == 0:
+            print('found bird info request, replying...', flush=True)
+            # extracting bird name
+            words = mention.full_text.lower().split()
+            # print(words)
+            itemp = 3
+            temp_bird_name = ''
+            while itemp < len(words):
+                temp_bird_name += words[itemp] + ' '
+                itemp += 1
+            # temp_bird_name += 'bird'
+            # if 'bird' not in temp_bird_name:
+            #    temp_bird_name += 'bird'
+            temp_bird_name.strip()
+            print("The bird name extracted is: ", temp_bird_name)
+            tweet_bird_info(temp_bird_name, mention)
             salu_flag = 1
 
         if 'movie' in mention.full_text.lower() and salu_flag == 0:

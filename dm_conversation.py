@@ -86,7 +86,8 @@ def reply_dms():
                     itemp += 1
                 city_name = temp_city_name.strip()
                 # city_name = temp_city_name[:len(temp_city_name)-1]
-                weather_url = 'https://api.openweathermap.org/data/2.5/weather?q=' + city_name.lower().replace(' ', '%20') + \
+                weather_url = 'https://api.openweathermap.org/data/2.5/weather?q=' + city_name.lower().replace(' ',
+                                                                                                               '%20') + \
                               '&appid=' + weather_api_key
                 weather_response = requests.get(weather_url)
                 wea_json = weather_response.json()
@@ -97,7 +98,7 @@ def reply_dms():
                     weather_description = wea_json["weather"][0]["description"]
                     api.send_direct_message(dir_message.message_create['sender_id'],
                                             'Weather forecast in ' + city_name + ':'
-                                            '\n' + str(weather_description) +
+                                                                                 '\n' + str(weather_description) +
                                             '\nTemperature = ' + str(current_temperature) + '\u00b0 C' +
                                             '\nHumidity = ' + str(current_humidity) + '%')
                 else:
@@ -125,6 +126,7 @@ def reply_dms():
                         break
     last_replied_dmid = dir_messages[0].id
     store_last_replied_dmid(last_replied_dmid, 'last_replied_dm.txt')
+
 
 while True:
     reply_dms()
