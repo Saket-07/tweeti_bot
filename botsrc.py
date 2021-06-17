@@ -103,13 +103,21 @@ def tweet_bird_info(bird_name, mention):
     downloader.download(bird_name.strip(), limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
                         timeout=60, verbose=True)
 
-    bird_image = 'bird_photo\\' + bird_name.strip() + '\\image_1.jpg'
+    bird_image_1 = 'bird_photo\\' + bird_name.strip() + '\\image_1.jpg'
+    bird_image_2 = 'bird_photo\\' + bird_name.strip() + '\\image_1.jpeg'
+    bird_image_3 = 'bird_photo\\' + bird_name.strip() + '\\image_1.png'
     try:
-        api.update_with_media(bird_image, '@' + mention.user.screen_name + ' ' + overview)
+        api.update_with_media(bird_image_1, '@' + mention.user.screen_name + ' ' + overview)
     except tweepy.error.TweepError:
-        print('Image not downloaded')
-        api.update_status('@' + mention.user.screen_name + " " + overview, mention.id)
-        return
+        try:
+            api.update_with_media(bird_image_2, '@' + mention.user.screen_name + ' ' + overview)
+        except tweepy.error.TweepError:
+            try:
+                api.update_with_media(bird_image_3, '@' + mention.user.screen_name + ' ' + overview)
+            except tweepy.error.TweepError:
+                print('Image not downloaded')
+                api.update_status('@' + mention.user.screen_name + " " + overview, mention.id)
+                return
     shutil.rmtree('bird_photo')
     return
 
