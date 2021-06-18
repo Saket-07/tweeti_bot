@@ -30,7 +30,7 @@ def reply_dms():
     # NOTE: We need to use tweet_mode='extended' below to show
     # all full tweets (with full_text). Without it, long tweets
     # would be cut off.
-    dir_messages = api.list_direct_messages()
+    dir_messages = api.list_direct_messages(count = 5)
 
     sup_salutations = ['sup', 'whats up', "what's up", 'wassup']
     sup_replies = ['Hey Yourself! Nothing much, I just got myself some bird food \U0001f600',
