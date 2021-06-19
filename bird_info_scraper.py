@@ -63,7 +63,9 @@ def post_bird_tweet():
         post_bird_tweet()
         return
 
-    search_bird = bird_with_ + '_bird'
+    search_bird = bird_with_ + 'bird'
+    search_bird.strip()
+    search_bird = search_bird.replace(' ', '_')
     downloader.download(search_bird, limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
                         timeout=60, verbose=True)
 
