@@ -100,7 +100,9 @@ def tweet_bird_info(bird_name, mention):
             mention.id)
         return
 
-    search_bird = bird_name + '_bird'
+    search_bird = bird_name + 'bird'
+    search_bird.strip()
+    search_bird = search_bird.replace(' ', '_')
     downloader.download(search_bird, limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
                         timeout=60, verbose=True)
 
