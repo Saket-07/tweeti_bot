@@ -20,13 +20,13 @@ def retweet():
     search_results += (api.search(q="#birdwatching", count=100, lang="en"))
 
     search_results.sort(reverse=True, key=cmp)
-    api.retweet(search_results[0].id)
+    try:
+        api.retweet(search_results[0].id)
+    except:
+        print("Something went wrong with retweet")
+        return
 
-
-bird_retweet_time = datetime.now()
 
 while True:
-    while datetime.now() < bird_retweet_time:
-        tim.sleep(3600)
     retweet()
-    bird_retweet_time += timedelta(hours=4)
+    tim.sleep(14400)
