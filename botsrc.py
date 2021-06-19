@@ -275,6 +275,8 @@ def reply_to_tweets():
                     salu_flag = 1
                     break
 
+        if salu_flag ==0:
+            api.update_status('@' + mention.user.screen_name + " Unfortunately I cannot recognise this command \U0001F614. Refer to the pinned tweet and try again", mention.id)
 
 while True:
     reply_to_tweets()
