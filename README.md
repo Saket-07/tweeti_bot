@@ -40,14 +40,23 @@ Even if the bird_name you provided does not exactly match with any bird, Tweeti 
 ```
 @HeyTweeti unfollow me
 ```
-(Technically, you can use any commands of your choice, as long as it contains the keyword 'follow' or 'unfollow' in it)
+(Technically, you can use any commands of your choice, as long as it contains the keyword 'follow me' or 'unfollow me' in it)
 
-## Local Hosting
-### Tech-stack
+## Technical Description
+We have used a few API's in order to accomplish certain tasks. Some of them are public API's while others require private API keys in order to be used. Following is a brief description of the API's used:
+* Twitter API - A private API used to gain access to various twitter functionalities such as posting a tweet, replying to mentions, etc.
+* Jokes API - A public API which returns a random joke on each call.
+* Weather API - A private API which returns weather conditions of a city.
+
+Apart from API's, we have implemented web scraping to extract information from various web sources like wikipedia, bing-image search, book recommendations and movie recommendations.
+
+## Tech-stack
 * Python 3.9 or above
 * Git
 
-### Instructions
+## Local Hosting Instructions
+* Generate twitter API keys on https://developer.twitter.com/en
+* Generate weather API key on https://openweathermap.org/api
 * Clone the remote reopsitory on your system.
 ```
 git clone https://github.com/Saket-07/twitter_bot.git
@@ -55,6 +64,15 @@ git clone https://github.com/Saket-07/twitter_bot.git
 * Install all the dependencies by running the command:
 ```
 pip install -r requirements.txt
+```
+* Now create a '.env' file. Use the following format:
+```
+CONSUMER_KEY = 'your_consumer_key'
+CONSUMER_SECRET = 'your_consumer_secret'
+ACCESS_KEY = 'your_access_key'
+ACCESS_SECRET = 'your_access_secret'
+
+WEATHER_API_KEY = 'your_weather_api_key'
 ```
 * Run the following scripts simultaneously on your system:
 ```
@@ -65,6 +83,13 @@ python bird_retweet.py
 ```
 ```
 python botsrc.py
+```
+* Run the following commands in python console:
+```
+import nltk
+```
+```
+nltk.download("punkt")
 ```
 The project is now up and running on the local server.
 
