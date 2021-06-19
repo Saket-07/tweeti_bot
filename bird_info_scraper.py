@@ -62,9 +62,9 @@ def post_bird_tweet():
     downloader.download(bird_with_, limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
                         timeout=60, verbose=True)
 
-    bird_image_1 = 'bird_photo\\' + bird_with_.strip() + '\\Image_1.jpg'
-    bird_image_2 = 'bird_photo\\' + bird_with_.strip() + '\\Image_1.jpeg'
-    bird_image_3 = 'bird_photo\\' + bird_with_.strip() + '\\Image_1.png'
+    bird_image_1 = 'bird_photo/' + bird_with_.strip() + '/Image_1.jpg'
+    bird_image_2 = 'bird_photo/' + bird_with_.strip() + '/Image_1.jpeg'
+    bird_image_3 = 'bird_photo/' + bird_with_.strip() + '/Image_1.png'
 
     try:
         api.update_with_media(bird_image_1, overview)
