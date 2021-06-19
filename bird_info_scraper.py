@@ -9,7 +9,6 @@ import time as tim
 import nltk.data
 import shutil
 
-
 auth = tweepy.OAuthHandler(config("CONSUMER_KEY"), config("CONSUMER_SECRET"))
 auth.set_access_token(config("ACCESS_KEY"), config("ACCESS_SECRET"))
 api = tweepy.API(auth)
@@ -42,11 +41,16 @@ def post_bird_tweet():
     overview = ''
     for sentence in data:
         sentence = sentence.getText()
-        if 'The ' in sentence:
+        if 'The ' in sentence or bird in sentence:
             overview = tokenizer.tokenize(sentence)
             break
 
-    overview = overview[0]
+    try:
+        overview = overview[0]
+    except:
+        print("Something wrong with getting overview")
+        post_bird_tweet()
+        return
 
     for i in range(len(overview)):
 
