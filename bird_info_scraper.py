@@ -62,24 +62,25 @@ def post_bird_tweet():
     downloader.download(bird_with_, limit=1, output_dir='bird_photo', adult_filter_off=True, force_replace=False,
                         timeout=60, verbose=True)
 
-    bird_image = 'bird_photo\\' + bird_with_ + '\\image_1.jpg'
+    bird_image_1 = 'bird_photo\\' + bird_with_.strip() + '\\Image_1.jpg'
+    bird_image_2 = 'bird_photo\\' + bird_with_.strip() + '\\Image_1.jpeg'
+    bird_image_3 = 'bird_photo\\' + bird_with_.strip() + '\\Image_1.png'
+
     try:
-        api.update_with_media(bird_image, overview)
+        api.update_with_media(bird_image_1, overview)
     except tweepy.error.TweepError:
-        print('Image not downloaded')
-        post_bird_tweet()
-        return
+        try:
+            api.update_with_media(bird_image_2, overview)
+        except tweepy.error.TweepError:
+            try:
+                api.update_with_media(bird_image_3, overview)
+            except tweepy.error.TweepError:
+                print('Image not downloaded')
+                post_bird_tweet()
+                return
+    shutil.rmtree('bird_photo')
 
-
-    dir = "bird_photo"
-
-    shutil.rmtree(dir)
-
-
-bird_posting_time = datetime.now()+timedelta(seconds=2)
 
 while True:
-    while datetime.now() < bird_posting_time:
-        tim.sleep(1)
     post_bird_tweet()
-    bird_posting_time += timedelta(hours=12)
+    tim.sleep(43200)
